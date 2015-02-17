@@ -2,7 +2,7 @@ __author__ = 'EricLiu'
 
 from elasticsearch import Elasticsearch
 from elasticsearch import helpers
-from PA1_1 import WikiNovelExtractor
+from Wiki_extractor_PA1_1 import WikiNovelExtractor
 
 
 class NovelES:
