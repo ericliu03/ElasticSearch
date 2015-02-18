@@ -27,8 +27,8 @@ class WikiNovelExtractor:
         # times of appearances of 4 quarter of a century
         self.year_c = Counter()
         # total number of pages extracted
-        self.page_num = 0
-        self.pages = []
+        self.page_id = 0
+        self.pages = {}
 
     @staticmethod
     def inside_split(sen):
@@ -161,7 +161,7 @@ class WikiNovelExtractor:
 
     def counter(self, book_dic):
         """count the numbers"""
-        self.page_num += 1
+        self.page_id += 1
         authors = book_dic['authors']
         if authors is not None:
             for author in authors:
@@ -173,7 +173,7 @@ class WikiNovelExtractor:
         year = int(book_dic['year']) if book_dic['year'] is not None else None
         if year is None:
             pass
-        elif 1900 < year < 1925:
+        elif 1900 <= year < 1925:
             self.year_c['q1'] += 1
         elif year < 1950:
             self.year_c['q2'] += 1
@@ -220,31 +220,33 @@ class WikiNovelExtractor:
     def get_info_from_wiki(self):
         """get information and store after extraction, return a list of dictionaries contains pages' info"""
         url = "http://en.wikipedia.org/w/api.php"
-        cat = "20th-century_American_novels",
+        cat = "20th-century_American_novels"
         wiki_obj = wiki.Wiki(url)
         wiki_cat = category.Category(wiki_obj, title=cat)
         wiki_pages = wiki_cat.getAllMembers()
         print 'Got pages, start extracting'
         total = len(wiki_pages)
         for page in wiki_pages:
-            if self.page_num % 5 == 0:
-                print "%.2f%%" % (100.0*self.page_num/total)
-            self.pages.append(self.get_page_info(page))
+            if self.page_id % 5 == 0:
+                print "%.2f%%" % (100.0*self.page_id/total)
+            self.pages[self.page_id] = self.get_page_info(page)
         print 'Extracting complete, write to file %s' % self.file_name
-        self.to_jsonfile(self.pages, "wiki_all.txt")
+        self.to_jsonfile(self.pages, self.file_name)
 
         return self.pages
 
     def print_info(self):
-        print 'number of books extracted: ', self.page_num
+        print 'number of books extracted: ', self.page_id
         print 'number of author: ', len(self.author_c)
         print 'number of category: ', len(self.category_c)
         print 'distribution of published year', self.year_c
 
 if __name__ == "__main__":
     extractor = WikiNovelExtractor("wiki_all.txt")
+    # extractor.get_info_from_wiki()
     dicts = extractor.get_info_from_file()
-    for dic in dicts:
+    for dic in dicts.itervalues():
+        print dic
         extractor.counter(dic)
     extractor.print_info()
 

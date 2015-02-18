@@ -3,7 +3,7 @@ __author__ = 'EricLiu'
 from elasticsearch import Elasticsearch
 from elasticsearch import helpers
 from Wiki_extractor_PA1_1 import WikiNovelExtractor
-
+import time
 
 class NovelES:
     def __init__(self, docs):
@@ -54,13 +54,15 @@ class NovelES:
             self.es.indices.create(index="i_novels", body=setting)
             self.es.indices.put_mapping(index=self.index, doc_type=self.type, body=mapping)
             self.bulk_create()
+            time.sleep(1)
         except Exception, e:
             print "ERROR: Index exists. Skip bulkload"
             pass
 
     def bulk_create(self):
         actions = []
-        for body in self.docs:
+        for body in self.docs.itervalues():
+            print body
             actions.append({
                 '_index': self.index,
                 '_type': self.type,
@@ -128,8 +130,8 @@ class NovelES:
         self.q_field('category')
 
 if __name__ == "__main__":
-    wiki_obj = WikiNovelExtractor()
-    pages = wiki_obj.load_json("wiki_all.txt")
+    wiki_obj = WikiNovelExtractor("wiki_head_200.txt")
+    pages = wiki_obj.get_info_from_file()
     es_obj = NovelES(pages)
     es_obj.set_up_es()
     es_obj.test_queries()
